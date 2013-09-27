@@ -35,9 +35,9 @@ exports.getAll = function(callback)
 			//console.log(cas_data);
 	  		cas_nums_chem_names.push(cas_data);
 	  		//console.log(cas_nums_chem_names);
-
-    	}
+        
       console.log(cas_data);
+    	}
 	});
 	console.log(cas_nums_chem_names);
 	callback(null,cas_nums_chem_names);

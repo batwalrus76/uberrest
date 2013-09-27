@@ -127,7 +127,7 @@ var SampleApp = function() {
         self.routes['/casdata/:chemical_name'] = function(req, res) {
             var chemical_name = req.params.chemical_name;
             console.log("Chemical Name: " + chemical_name);
-            cas.getChemicalData(chemical_name, function(error,cas_data){
+            mongo.getChemicalData(chemical_name, function(error,cas_data){
                 if(cas_data != null)
                 {
                     res.header("Access-Control-Allow-Origin", "*");

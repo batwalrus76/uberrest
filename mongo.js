@@ -60,10 +60,12 @@ exports.getChemicalData = function(chemical_name, callback)
 	console.log("Retrieving all chemica data for " + chemical_name);
     cas.findOne({ChemicalName:chemical_name},function(err,CAS) {
 	    var cas_data = null;
-	    if(cas != null)
+	    if(CAS != null)
 	    {
 	    	cas_data = {"ChemicalName":CAS.ChemicalName,"CASNumber":CAS.CASNumber,"PCCode":CAS.PCCode};
 	    }
+      console.log(CAS);
+      console.log(cas_data);
 	    callback(null,cas_data);
     });
 }

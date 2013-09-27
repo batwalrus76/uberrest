@@ -45,12 +45,13 @@ exports.getChemicalName = function(cas_number,callback)
 {
     console.log("Retrieving chemical name data for " + cas_number);
     cas.findOne({CASNumber:cas_number},function(err,CAS) {
+        console.log(CAS);
         if(CAS != null)
         {
         	callback(null,CAS.ChemicalName.substring(0,20));
-    	} else {
-    		callback(null,"");
-    	}
+      	} else {
+      		callback(null,"");
+      	}
     });
 }
 

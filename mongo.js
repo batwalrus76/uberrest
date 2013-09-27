@@ -32,10 +32,7 @@ exports.getAll = function(callback)
 		{
 		  cas_data = {"ChemicalName":doc.ChemicalName,"CASNumber":doc.CASNumber,"PCCode":doc.PCCode};
 			//console.log(cas_data);
-	  		cas_nums_chem_names.push(cas_data);
-	  		//console.log(cas_nums_chem_names);
-
-      console.log(cas_data);
+	  		cas_nums_chem_names.unshift(cas_data);
     	}
 	});
 	console.log(cas_nums_chem_names);

@@ -10,8 +10,7 @@ if(process.env.OPENSHIFT_MONGODB_DB_PASSWORD){
   process.env.OPENSHIFT_MONGODB_DB_PASSWORD + "@" +
   process.env.OPENSHIFT_MONGODB_DB_HOST + ':' +
   process.env.OPENSHIFT_MONGODB_DB_PORT + '/' +
-//  process.env.OPENSHIFT_APP_NAME;
-  database;
+  process.env.OPENSHIFT_APP_NAME;
 }
 
 console.log(connection_string);
@@ -35,7 +34,7 @@ exports.getAll = function(callback)
 			//console.log(cas_data);
 	  		cas_nums_chem_names.push(cas_data);
 	  		//console.log(cas_nums_chem_names);
-        
+
       console.log(cas_data);
     	}
 	});

@@ -27,13 +27,7 @@ exports.getAll = function(callback)
 	// log each of the first ten docs in the collection
 	cas_nums_chem_names = [];
 	cas.find().forEach(function(err, doc) {
-		//
-		if(doc != null)
-		{
-		  cas_data = {"ChemicalName":doc.ChemicalName,"CASNumber":doc.CASNumber,"PCCode":doc.PCCode};
-			//console.log(cas_data);
-	  		cas_nums_chem_names.unshift(cas_data);
-    	}
+		cas_nums_chem_names.append({"ChemicalName":doc.ChemicalName,"CASNumber":doc.CASNumber,"PCCode":doc.PCCode});
 	});
 	console.log(cas_nums_chem_names);
 	callback(null,cas_nums_chem_names);

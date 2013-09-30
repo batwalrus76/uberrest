@@ -107,8 +107,8 @@ var SampleApp = function() {
         };
 
         self.routes['/cas/:cas_num'] = function(req, res) {
-            console.log("/cas REST API reached");
-            mongo.getChemicalName(req.param.cas_num, function(error,chem_name){
+            console.log("/cas/" + req.params.cas_num + " REST API reached ");
+            mongo.getChemicalName(req.params.cas_num, function(error,chem_name){
                 res.header("Access-Control-Allow-Origin", "*");
                 res.header("Access-Control-Allow-Headers", "X-Requested-With");
                 res.send(chem_name);

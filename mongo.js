@@ -2,9 +2,8 @@ var ip_addr = process.env.OPENSHIFT_NODEJS_IP   || '127.9.164.2';
 var port    = process.env.OPENSHIFT_NODEJS_PORT || '8080';
 var database = "ubertool";
 // default to a 'localhost' configuration:
-var connection_string = ""; //mongodb://admin:TanQaEQVmPrP@127.9.164.2:27017/ubertool";//ip_addr+':27017/ubertool';
+var connection_string = "mongodb://admin:TanQaEQVmPrP@127.0.0.1:27017/uberrest"; //mongodb://admin:TanQaEQVmPrP@127.9.164.2:27017/ubertool";//ip_addr+':27017/ubertool';
 // if OPENSHIFT env variables are present, use the available connection info:
-
 if(process.env.OPENSHIFT_MONGODB_DB_PASSWORD){
   connection_string = "mongodb://" + process.env.OPENSHIFT_MONGODB_DB_USERNAME + ":" +
   process.env.OPENSHIFT_MONGODB_DB_PASSWORD + "@" +
@@ -12,7 +11,6 @@ if(process.env.OPENSHIFT_MONGODB_DB_PASSWORD){
   process.env.OPENSHIFT_MONGODB_DB_PORT + '/' +
   process.env.OPENSHIFT_APP_NAME;
 }
-
 console.log(connection_string);
 
 var mongojs = require('mongojs');
@@ -27,24 +25,38 @@ exports.getAll = function(callback)
 	// log each of the first ten docs in the collection
 	cas_nums_chem_names = [];
 	cas.find().forEach(function(err, doc) {
-		cas_nums_chem_names.append({"ChemicalName":doc.ChemicalName,"CASNumber":doc.CASNumber,"PCCode":doc.PCCode});
+    if(doc != null)
+    {
+      //console.log(doc);
+      cas_nums_chem_names.push({"ChemicalName":doc.ChemicalName,"CASNumber":doc.CASNumber,"PCCode":doc.PCCode});
+      if(cas_nums_chem_names != null && cas_nums_chem_names.length >= 23963)
+      {
+        callback(null,cas_nums_chem_names);
+      }
+    }
 	});
-	console.log(cas_nums_chem_names);
-	callback(null,cas_nums_chem_names);
+}
+
+function screenNullDoc(doc, callback)
+{
+  if(doc != null)
+  {
+    callback(doc);
+  }
 }
 
 exports.getChemicalName = function(cas_number,callback)
 {
-    console.log("Retrieving chemical name data for " + cas_number);
-    cas.findOne({CASNumber:cas_number},function(err,CAS) {
-        console.log(CAS);
-        if(CAS != null)
-        {
-        	callback(null,CAS.ChemicalName.substring(0,20));
-      	} else {
-      		callback(null,"");
-      	}
-    });
+  console.log("Retrieving chemical name data for " + cas_number);
+  cas.findOne({CASNumber:cas_number},function(err,CAS) {
+    console.log(CAS);
+    if(CAS != null)
+    {
+    	callback(null,CAS.ChemicalName.substring(0,20));
+  	} else {
+  		callback(null,"");
+  	}
+  });
 }
 
 exports.getChemicalData = function(chemical_name, callback)
@@ -56,8 +68,6 @@ exports.getChemicalData = function(chemical_name, callback)
 	    {
 	    	cas_data = {"ChemicalName":CAS.ChemicalName,"CASNumber":CAS.CASNumber,"PCCode":CAS.PCCode};
 	    }
-      console.log(CAS);
-      console.log(cas_data);
 	    callback(null,cas_data);
     });
 }

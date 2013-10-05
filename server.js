@@ -154,6 +154,7 @@ var SampleApp = function() {
             var config_type = req.params.config_type;
             var config = req.params.config;
             console.log("Config Type: " + config_type);
+            console.log("Config: " + config);
             ubertool.getAllConfigNames(config_type,config,function(error,config_data){
                 res.header("Access-Control-Allow-Origin", "*");
                 res.header("Access-Control-Allow-Headers", "X-Requested-With");

@@ -66,7 +66,6 @@ exports.getConfigData = function(config_type,config,callback)
   } else if(config_type == 'eco')
   {
     config_collection = eco;
-    console.log("Using the eco collection.");
   } else if(config_type == 'expo')
   {
     config_collection = expo;
@@ -83,7 +82,7 @@ exports.getConfigData = function(config_type,config,callback)
   {
     config_collection = ubertool;
   } 
-  if(config_name != null)
+  if(config_collection != null)
   {
     config_collection.findOne({'config_name':config},function(err,config_data) {
       console.log(config_data);

@@ -241,6 +241,10 @@ var SampleApp = function() {
         for (var r in self.routes) {
             self.app.get(r, self.routes[r]);
         }
+
+        for (var r in self.post_routes) {
+            self.app.get(r, self.post_routes[r]);
+        }
     };
 
 

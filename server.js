@@ -2,8 +2,8 @@
 //  OpenShift sample Node application
 var express = require('express');
 var fs      = require('fs');
-var mongo     = require('./mongo.js');
-
+var mongo   = require('./mongo.js');
+var cas     = require('./cas.js');
 
 /**
  *  Define the sample application.
@@ -13,6 +13,8 @@ var SampleApp = function() {
     //  Scope.
     var self = this;
 
+    var db = mongo.getDBConnection();
+    cas.setDB(db);
 
     /*  ================================================================  */
     /*  Helper functions.                                                 */
@@ -108,7 +110,7 @@ var SampleApp = function() {
 
         self.routes['/cas/:cas_num'] = function(req, res) {
             console.log("/cas/" + req.params.cas_num + " REST API reached ");
-            mongo.getChemicalName(req.params.cas_num, function(error,chem_name){
+            cas.getChemicalName(req.params.cas_num, function(error,chem_name){
                 res.header("Access-Control-Allow-Origin", "*");
                 res.header("Access-Control-Allow-Headers", "X-Requested-With");
                 res.send(chem_name);
@@ -117,7 +119,7 @@ var SampleApp = function() {
 
         self.routes['/all-cas'] = function(req, res) {
             console.log("/all-cas REST API reached");
-            mongo.getAll(function(error,all_cas){
+            cas.getAll(function(error,all_cas){
                 res.header("Access-Control-Allow-Origin", "*");
                 res.header("Access-Control-Allow-Headers", "X-Requested-With");
                 res.send(all_cas);
@@ -127,7 +129,7 @@ var SampleApp = function() {
         self.routes['/casdata/:chemical_name'] = function(req, res) {
             var chemical_name = req.params.chemical_name;
             console.log("Chemical Name: " + chemical_name);
-            mongo.getChemicalData(chemical_name, function(error,cas_data){
+            cas.getChemicalData(chemical_name, function(error,cas_data){
                 if(cas_data != null)
                 {
                     res.header("Access-Control-Allow-Origin", "*");

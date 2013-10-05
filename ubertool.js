@@ -20,78 +20,38 @@ exports.setDB = function(db)
 
 exports.getAllConfigNames = function(config_type,callback)
 {
-  var config_collection = '';
+  var config_collection = null;
   if(config_type == 'aqua')
   {
-    aqua.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);     
-    });
+    config_collection = aqua;
+
   } else if(config_type == 'eco')
   {
-    eco.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);     
-    });
+    config_collection = eco;
   } else if(config_type == 'expo')
   {
-    expo.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);     
-    });
+    config_collection = expo;
   } else if(config_type == 'pest')
   {
-    pest.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);   
-    });
+    config_collection = pest;
   } else if(config_type == 'terre')
   {
-    terre.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);   
-    });
+    config_collection = terre;
   } else if(config_type == 'use')
   {
-    use.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);   
-    });
+    config_collection = use;
   } else if(config_type == 'ubertool')
   {
-    ubertool.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);   
-    });
+    config_collection = ubertool;
   } 
+  config_collection.find().toArray(function(err,all_data) {
+    var config_names = [];
+    for(i = 0; i < all_data.length; i++)
+    {
+      config_names.push(all_data[i].config_name);
+    }
+    callback(null,config_names);     
+  });
 }
 
 /**

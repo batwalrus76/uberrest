@@ -139,7 +139,7 @@ var SampleApp = function() {
             });
         };
 
-        self.app.get("/ubertool/aqua/config_names",function(req, res) {
+        self.routes['/ubertool/aqua/config_names'] = function(req, res) {
             var config_type = "aqua";
             console.log("Config Type: " + config_type);
             ubertool.getAllConfigNames(config_type,function(error,config_names){
@@ -147,7 +147,7 @@ var SampleApp = function() {
                 res.header("Access-Control-Allow-Headers", "X-Requested-With");
                 res.send(config_names);
             });
-        });
+        };
 
         self.routes['/api'] = function(req, res) {
             console.log("Describe REST API");

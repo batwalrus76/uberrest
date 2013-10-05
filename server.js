@@ -139,8 +139,8 @@ var SampleApp = function() {
             });
         };
 
-        self.routes['/ubertool/:config_type/config_names'] = function(req, res) {
-            var config_type = req.params.config_type;
+        self.routes['/ubertool/aqua/config_names'] = function(req, res) {
+            var config_type = "aqua";
             console.log("Config Type: " + config_type);
             ubertool.getAllConfigNames(config_type,function(error,config_names){
                 res.header("Access-Control-Allow-Origin", "*");

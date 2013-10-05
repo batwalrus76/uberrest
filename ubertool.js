@@ -23,45 +23,77 @@ exports.getAllConfigNames = function(config_type,callback)
   var config_collection = '';
   if(config_type == 'aqua')
   {
-    aqua.find().toArray(processConfigNames(err,all_data,callback));
+    aqua.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);     
+    });
   } else if(config_type == 'eco')
   {
-    config_collection = 'EcosystemInputs';
+    eco.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);     
+    });
   } else if(config_type == 'expo')
   {
-    config_collection = 'ExposureConcentrations';
+    expo.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);     
+    });
   } else if(config_type == 'pest')
   {
-    config_collection = 'PesticideProperties';
+    pest.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);   
+    });
   } else if(config_type == 'terre')
   {
-    config_collection = 'TerrestrialToxicity';
+    terre.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);   
+    });
   } else if(config_type == 'use')
   {
-    config_collection = 'Use';
+    use.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);   
+    });
   } else if(config_type == 'ubertool')
   {
-    config_collection = 'Ubertool';
-  } 
-  /**
-  db.collection(config_collection, function(err,collection){
-    collection.find().toArray(function(err,all_data) {
-
+    ubertool.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);   
     });
-  });
-**/
+  } 
 }
 
-function processConfigNames(err, config_data, callback)
-{
-  var config_names = [];
-  for(i = 0; i < all_data.length; i++)
-  {
-    config_names.push(all_data[i].config_name);
-  }
-  console.log(config_names);
-  callback(null,config_names);   
-}
 /**
 exports.getConfigData = function(config_type,config,callback)
 { 

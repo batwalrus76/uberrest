@@ -125,4 +125,3 @@ exports.addUpdateConfig = function(config_type,config,json_data,callback)
     });
   }
 }
-**/

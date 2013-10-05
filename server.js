@@ -4,6 +4,7 @@ var express = require('express');
 var fs      = require('fs');
 var mongo   = require('./mongo.js');
 var cas     = require('./cas.js');
+var ubertool= require('./ubertool.js');
 
 /**
  *  Define the sample application.
@@ -14,6 +15,7 @@ var SampleApp = function() {
     var self = this;
     var db = mongo.getDB();
     cas.setDB(db);
+    ubertool.setDB(db);
     /*  ================================================================  */
     /*  Helper functions.                                                 */
     /*  ================================================================  */
@@ -134,6 +136,15 @@ var SampleApp = function() {
                     res.header("Access-Control-Allow-Headers", "X-Requested-With");
                     res.send(cas_data);
                 }
+            });
+        };
+
+        self.routes['/ubertool/:config_type/config_names'] = function(req, res) {
+            var config_type = req.params.config_type;
+            ubertool.getAllConfigNames(config_type,function(error,config_names){
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                res.send(config_names);
             });
         };
 

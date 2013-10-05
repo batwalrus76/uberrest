@@ -1,26 +1,35 @@
-var flow = require('nimble');
-var Db = require('mongodb').Db,
-  Connection = require('mongodb').Connection,
-  Server = require('mongodb').Server,
-  ObjectId = require('mongodb').ObjectId,
-  Timestamp = require('mongodb').Timestamp;
+var aqua = null
+var eco = null;
+var expo = null;
+var pest = null;
+var terre = null;
+var use = null;
+var ubertool = null;
 
-var host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : '127.9.164.2';
-var port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : Connection.DEFAULT_PORT;
-
-console.log("Connecting to " + host + ":" + port);
-var db = new Db('ubertool', new Server(host, port, {}), {native_parser:false});
-
-db.open(function(err, db) {
-  console.log('Opened MongoDb connection.');
-});
+exports.setDB = function(db)
+{
+  aqua = db.collection('AquaticToxicity');
+  eco = db.collection('EcosystemInputs');
+  expo = db.collection('ExposureConcentrations');
+  pest = db.collection('PesticideProperties');
+  terre = db.collection('TerrestrialToxicity');
+  use = db.collection('Use');
+  ubertool = db.collection('Ubertool');
+}
 
 exports.getAllConfigNames = function(config_type,callback)
 {
   var config_collection = '';
   if(config_type == 'aqua')
   {
-    config_collection = 'AquaticToxicity';
+    aqua.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);     
+    });
   } else if(config_type == 'eco')
   {
     config_collection = 'EcosystemInputs';
@@ -40,18 +49,15 @@ exports.getAllConfigNames = function(config_type,callback)
   {
     config_collection = 'Ubertool';
   } 
+  /**
   db.collection(config_collection, function(err,collection){
     collection.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);
+
     });
   });
+**/
 }
-
+/**
 exports.getConfigData = function(config_type,config,callback)
 { 
   var config_collection = '';
@@ -121,3 +127,4 @@ exports.addUpdateConfig = function(config_type,config,json_data,callback)
       });
   });
 }
+**/

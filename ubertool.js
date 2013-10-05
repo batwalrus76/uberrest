@@ -23,14 +23,7 @@ exports.getAllConfigNames = function(config_type,callback)
   var config_collection = '';
   if(config_type == 'aqua')
   {
-    aqua.find().toArray(function(err,all_data) {
-      var config_names = [];
-      for(i = 0; i < all_data.length; i++)
-      {
-        config_names.push(all_data[i].config_name);
-      }
-      callback(null,config_names);     
-    });
+    aqua.find().toArray(processConfigNames(err,all_data,callback));
   } else if(config_type == 'eco')
   {
     config_collection = 'EcosystemInputs';
@@ -57,6 +50,17 @@ exports.getAllConfigNames = function(config_type,callback)
     });
   });
 **/
+}
+
+function processConfigNames(err, config_data, callback)
+{
+  var config_names = [];
+  for(i = 0; i < all_data.length; i++)
+  {
+    config_names.push(all_data[i].config_name);
+  }
+  console.log(config_names);
+  callback(null,config_names);   
 }
 /**
 exports.getConfigData = function(config_type,config,callback)

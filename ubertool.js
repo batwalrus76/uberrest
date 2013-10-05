@@ -15,6 +15,7 @@ exports.setDB = function(db)
   terre = db.collection('TerrestrialToxicity');
   use = db.collection('Use');
   ubertool = db.collection('Ubertool');
+  console.log("added ubertool-related collections");
 }
 
 exports.getAllConfigNames = function(config_type,callback)

@@ -141,6 +141,7 @@ var SampleApp = function() {
 
         self.routes['/ubertool/:config_type/config_names'] = function(req, res) {
             var config_type = req.params.config_type;
+            console.log("Config Type: " + config_type);
             ubertool.getAllConfigNames(config_type,function(error,config_names){
                 res.header("Access-Control-Allow-Origin", "*");
                 res.header("Access-Control-Allow-Headers", "X-Requested-With");

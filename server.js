@@ -97,6 +97,7 @@ var SampleApp = function() {
      */
     self.createRoutes = function() {
         self.routes = { };
+        self.post_routes = { };
 
         // Routes for /health, /asciimo and /
         self.routes['/health'] = function(req, res) {
@@ -146,6 +147,37 @@ var SampleApp = function() {
                 res.header("Access-Control-Allow-Origin", "*");
                 res.header("Access-Control-Allow-Headers", "X-Requested-With");
                 res.send(config_names);
+            });
+        };
+
+        self.routes['/ubertool/:config_type/:config'] = function(req, res) {
+            var config_type = req.params.config_type;
+            var config = req.params.config;
+            console.log("Config Type: " + config_type);
+            ubertool.getAllConfigNames(config_type,config,function(error,config_data){
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                res.send(config_data);
+            });
+        };
+
+        self.post_routes['/ubertool/:config_type/:config'] = function(req,res,next){
+            var config_type = req.params.config_type;
+            var config = req.params.config;
+            var body = '';
+            var json = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                json = JSON.parse(body);
+                console.log("POST for Configuration Name: " + config + " config type: " + config_type + " json data: " + json);
+                ubertool.addUpdateConfig(config_type,config,json, function(error, results)
+                {
+                    res.send(results);
+                });
             });
         };
 

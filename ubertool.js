@@ -44,84 +44,85 @@ exports.getAllConfigNames = function(config_type,callback)
   {
     config_collection = ubertool;
   } 
-  config_collection.find().toArray(function(err,all_data) {
-    var config_names = [];
-    for(i = 0; i < all_data.length; i++)
-    {
-      config_names.push(all_data[i].config_name);
-    }
-    callback(null,config_names);     
-  });
+  if(config_collection != null)
+  {
+    config_collection.find().toArray(function(err,all_data) {
+      var config_names = [];
+      for(i = 0; i < all_data.length; i++)
+      {
+        config_names.push(all_data[i].config_name);
+      }
+      callback(null,config_names);     
+    });
+  }
 }
 
-/**
 exports.getConfigData = function(config_type,config,callback)
 { 
-  var config_collection = '';
+  var config_collection = null;
   if(config_type == 'aqua')
   {
-    config_collection = 'AquaticToxicity';
+    config_collection = aqua;
   } else if(config_type == 'eco')
   {
-    config_collection = 'EcosystemInputs';
+    config_collection = eco;
   } else if(config_type == 'expo')
   {
-    config_collection = 'ExposureConcentrations';
+    config_collection = expo;
   } else if(config_type == 'pest')
   {
-    config_collection = 'PesticideProperties';
+    config_collection = pest;
   } else if(config_type == 'terre')
   {
-    config_collection = 'TerrestrialToxicity';
+    config_collection = terre;
   } else if(config_type == 'use')
   {
-    config_collection = 'Use';
+    config_collection = use;
   } else if(config_type == 'ubertool')
   {
-    config_collection = 'Ubertool';
+    config_collection = ubertool;
   } 
-  db.collection(config_collection, function(err,collection){
-    collection.findOne({'config_name':config},function(err,config_data) {
+  if(config_name != null)
+  {
+    config_collection.findOne({'config_name':config},function(err,config_data) {
       callback(null,config_data);
     });
-  });
+  }
 }
 
 exports.addUpdateConfig = function(config_type,config,json_data,callback)
 {
-  var config_collection = '';
+  var config_collection = null;
   if(config_type == 'aqua')
   {
-    config_collection = 'AquaticToxicity';
+    config_collection = aqua;
   } else if(config_type == 'eco')
   {
-    config_collection = 'EcosystemInputs';
+    config_collection = eco;
   } else if(config_type == 'expo')
   {
-    config_collection = 'ExposureConcentrations';
+    config_collection = expo;
   } else if(config_type == 'pest')
   {
-    config_collection = 'PesticideProperties';
+    config_collection = pest;
   } else if(config_type == 'terre')
   {
-    config_collection = 'TerrestrialToxicity';
+    config_collection = terre;
   } else if(config_type == 'use')
   {
-    config_collection = 'Use';
+    config_collection = use;
   } else if(config_type == 'ubertool')
   {
-    config_collection = 'Ubertool';
+    config_collection = ubertool;
   }
-  console.log(config_collection);
-  console.log(config);
-  //console.log(json_data);
-  db.collection(config_collection, function(err,collection){
-    collection.findAndModify({config_name:config}, {created: 1},
+  if(config_collection != null)
+  {
+    config_collection.findAndModify({config_name:config}, {created: 1},
       json_data, {new:true, upsert:true, w:1},function(err,doc){
         console.log("added document");
         console.log(doc);
         callback(null,doc);
-      });
-  });
+    });
+  }
 }
 **/

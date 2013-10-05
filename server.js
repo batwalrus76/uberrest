@@ -2,6 +2,7 @@
 //  OpenShift sample Node application
 var express = require('express');
 var fs      = require('fs');
+var mongo   = require('./mongo.js');
 var cas     = require('./cas.js');
 
 /**
@@ -11,7 +12,8 @@ var SampleApp = function() {
 
     //  Scope.
     var self = this;
-
+    var db = mongo.getDB();
+    cas.setDB(db);
     /*  ================================================================  */
     /*  Helper functions.                                                 */
     /*  ================================================================  */

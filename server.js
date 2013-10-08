@@ -5,7 +5,9 @@ var fs      = require('fs');
 var mongo   = require('./mongo.js');
 var cas     = require('./cas.js');
 var ubertool= require('./ubertool.js');
-
+var batch   = require('./batch.js');
+var user    = require('./user.js');
+var formula = require('./formula.js');
 /**
  *  Define the sample application.
  */
@@ -16,6 +18,10 @@ var SampleApp = function() {
     var db = mongo.getDB();
     cas.setDB(db);
     ubertool.setDB(db);
+    user.setDB(db);
+    formula.setDB(db);
+    batch.setDB(db);
+    
     /*  ================================================================  */
     /*  Helper functions.                                                 */
     /*  ================================================================  */
@@ -162,6 +168,84 @@ var SampleApp = function() {
             });
         };
 
+        server.post_routes['/batch'] = function submitBatch(req, res, next){
+            console.log("Batch Submitted to Node.js server.");
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            //console.log(body);
+            req.on('end', function ()
+            {
+                var json = JSON.parse(body);
+                //console.log(JSON.stringify(json)); 
+                var results = rabbitmq.submitUbertoolBatchRequest(json);
+            });
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "X-Requested-With");
+            res.send("Submitting Batch.\n");
+        };
+
+        self.routes['/batch_configs'] = function(req, res, next) {
+            batch.getBatchNames(function(error, batch_ids){
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                res.send(batch_ids);
+            });
+        };
+
+        self.routes['/batch_results/:batchId'] = function(req, res, next) {
+            var batchId = req.params.batchId;
+            console.log("BatchId: " + batchId);
+            batch.getBatchResults(batchId, function(error, batch_data){
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                if(batch_data != null)
+                {
+                    res.send(batch_data);
+                } else {
+                    res.send("Problem returning results");
+                }
+            });
+        };
+
+        self.post_routes['/batch_results/:batchId'] = function(req,res,next){
+            var batchId = req.params.batchId;
+            console.log("BatchId: " + batchId);
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                console.log("body: " + body);
+                var json = JSON.parse(body);
+                var user_id = json.user_id;
+                var user_api_key = json.api_key;
+                console.log("json user_id: " + user_id + " user_api_key: " + user_api_key);
+                user.authenticateRestAccess(user_id,user_api_key,function(err,authenticated){
+                    console.log("authenticated: " + authenticated);
+                    if(authenticated){
+                        batch.getBatchResults(batchId, function(error, batch_data){
+                            res.header("Access-Control-Allow-Origin", "*");
+                            res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                            if(batch_data != null)
+                            {
+                                res.send(batch_data);
+                            } else {
+                                res.send("Problem returning results");
+                            }
+                        });
+                    } else {
+                        console.log('User API Authentication failed');
+                        res.send("User: " + user_id + " passed an incorrect api key and cannot call this method.");
+                    }
+                });
+            });
+        };
+
         self.post_routes['/ubertool/:config_type/:config'] = function(req,res,next){
             var config_type = req.params.config_type;
             var config = req.params.config;
@@ -179,6 +263,133 @@ var SampleApp = function() {
                 {
                     res.send(results);
                 });
+            });
+        };
+
+        self.post_routes['/user/login/:userid'] = function(req, res, next){
+            var user_id = req.params.userid;
+            console.log('user id: ' + user_id);
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                json = JSON.parse(body);
+                user.getLoginDecision(user_id,json.password,function(err, decision_data){
+                    res.header("Access-Control-Allow-Origin", "*");
+                    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                    res.header('Access-Control-Allow-Methods', "POST");
+                    if(decision_data.decision)
+                    {
+                        var acsid_string = "test="+decision_data.sid;
+                        console.log("acsid_string: " + acsid_string);
+                        res.header('Set-Cookie',acsid_string);
+                    }
+                    res.send(decision_data);
+                });
+            });
+        };
+
+        self.post_routes['/user/registration/:user_id'] = function(req, res, next){
+            var user_id = req.params.user_id;
+            console.log('user id: ' + user_id);
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                json = JSON.parse(body);
+                console.log(json);
+                console.log('password: ' + json.pswrd);
+                console.log('email address: ' + json.email_address);
+                user.registerUser(user_id,json.pswrd,json.email_address,function(err, sid_data){
+                    res.header("Access-Control-Allow-Origin", "*");
+                    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                    res.header('Access-Control-Allow-Methods', "POST");
+                    res.send(sid_data);
+                });
+            });
+        };
+
+        self.post_routes['/user/openid/login'] = function(req, res, next){
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                var json = JSON.parse(body);
+                user.openIdLogin(json.openid, function(err, login_data){
+                    res.header("Access-Control-Allow-Origin", "*");
+                    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                    res.header('Access-Control-Allow-Methods', "GET");
+                    res.send(login_data);
+                });
+            });
+        };
+
+        self.post_routes['/user/sessionid'] = function(req, res, next){
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                var json = JSON.parse(body);
+                var user_id = json['user_id'];
+                var session_id = json['session_id'];
+                console.log("User id: " + user_id + " session id: " + session_id);
+                user.checkUserSessionId(user_id, session_id, function(err, decision_data){
+                    res.header("Access-Control-Allow-Origin", "*");
+                    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                    res.header('Access-Control-Allow-Methods', "POST");
+                    console.log(decision_data);
+                    res.send(decision_data);
+                });
+            });
+        };
+
+        self.routes['/all-cas'] = function(req, res, next){
+            cas.getAll(function(error,all_cas){
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                res.send(all_cas);
+            });
+        };
+
+        //Formula Services
+        self.routes['/formula/:registration_num'] = function(req, res, next){
+            var registration_num = req.params.registration_num;
+            console.log("Registration Number: " + registration_num);
+            formula.getFormulaData(registration_num, function(error,chemicals){
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                console.log(chemicals)
+                res.send(chemicals);
+            });
+        };
+
+        self.routes['/formulas/:pc_code'] = function(req, res, next){
+            var pc_code = req.params.pc_code;
+            console.log("PC Code: " + pc_code);
+            formula.getFormulaDataFromPCCode(pc_code, function(error,chemical){
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                res.send(chemical);
+            });
+        };
+
+        self.routes['/all_formula'] = function(req, res, next){
+            formula.getAllFormulaData(function(error,formula_data){
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                res.send(formula_data);
             });
         };
 

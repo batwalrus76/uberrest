@@ -105,16 +105,6 @@ var SampleApp = function() {
         self.routes = { };
         self.post_routes = { };
 
-        // Routes for /health, /asciimo and /
-        self.routes['/health'] = function(req, res) {
-            res.send('1');
-        };
-
-        self.routes['/asciimo'] = function(req, res) {
-            var link = "http://i.imgur.com/kmbjB.png";
-            res.send("<html><body><img src='" + link + "'></body></html>");
-        };
-
         self.routes['/cas/:cas_num'] = function(req, res) {
             console.log("/cas/" + req.params.cas_num + " REST API reached ");
             cas.getChemicalName(req.params.cas_num, function(error,chem_name){
@@ -168,7 +158,7 @@ var SampleApp = function() {
             });
         };
 
-        server.post_routes['/batch'] = function submitBatch(req, res, next){
+        self.post_routes['/batch'] = function submitBatch(req, res, next){
             console.log("Batch Submitted to Node.js server.");
             var body = '';
             req.on('data', function (data)
@@ -455,7 +445,7 @@ var SampleApp = function() {
         }
 
         for (var r in self.post_routes) {
-            self.app.get(r, self.post_routes[r]);
+            self.app.post(r, self.post_routes[r]);
         }
     };
 

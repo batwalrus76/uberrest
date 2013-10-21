@@ -241,6 +241,8 @@ var SampleApp = function() {
             var config = req.params.config;
             var body = '';
             var json = '';
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "X-Requested-With");
             req.on('data', function (data)
             {
                 body += data;

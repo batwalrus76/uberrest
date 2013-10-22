@@ -250,10 +250,8 @@ var SampleApp = function() {
             req.on('end', function ()
             {
                 json = JSON.parse(body);
-                console.log("POST for Configuration Name: " + config + " config type: " + config_type + " json data: " + body);
                 ubertool.addUpdateConfig(config_type,config,json, function(error, results)
                 {
-                    console.log("Returning: " + results);
                     res.send(results);
                 });
             });

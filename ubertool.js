@@ -118,8 +118,8 @@ exports.addUpdateConfig = function(config_type,config,json_data,callback)
   }
   if(config_collection != null)
   {
-    config_collection.findAndModify({config_name:config}, {created: 1},
-      json_data, {new:true, upsert:true, w:1},function(err,doc){
+    console.log(json_data);
+    config_collection.update({'config_name':config}, json_data, {upsert:true, w:1},function(err,doc){
         console.log("added document");
         console.log(doc);
         callback(null,doc);

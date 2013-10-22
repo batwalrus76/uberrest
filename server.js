@@ -236,13 +236,13 @@ var SampleApp = function() {
             });
         };
 
-        self.post_routes['/ubertool/:config_type/:config'] = function(req,res,next){
+        self.post_routes['/ubertool/:config_type/:config'] = function(req,res){
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "X-Requested-With"); 
             var config_type = req.params.config_type;
             var config = req.params.config;
             var body = '';
             var json = '';
-            res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "X-Requested-With");
             req.on('data', function (data)
             {
                 body += data;
@@ -250,7 +250,7 @@ var SampleApp = function() {
             req.on('end', function ()
             {
                 json = JSON.parse(body);
-                console.log("POST for Configuration Name: " + config + " config type: " + config_type + " json data: " + json);
+                console.log("POST for Configuration Name: " + config + " config type: " + config_type + " json data: " + body);
                 ubertool.addUpdateConfig(config_type,config,json, function(error, results)
                 {
                     res.send(results);

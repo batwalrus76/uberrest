@@ -253,7 +253,7 @@ var SampleApp = function() {
                 console.log("POST for Configuration Name: " + config + " config type: " + config_type + " json data: " + body);
                 ubertool.addUpdateConfig(config_type,config,json, function(error, results)
                 {
-                    console.log(results)
+                    console.log("Returning: " + results);
                     res.send(results);
                 });
             });

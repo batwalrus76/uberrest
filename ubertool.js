@@ -85,7 +85,6 @@ exports.getConfigData = function(config_type,config,callback)
   if(config_collection != null)
   {
     config_collection.findOne({'config_name':config},function(err,config_data) {
-      console.log(config_data);
       callback(null,config_data);
     });
   }
@@ -118,10 +117,7 @@ exports.addUpdateConfig = function(config_type,config,json_data,callback)
   }
   if(config_collection != null)
   {
-    config_collection.findAndModify({config_name:config}, {created: 1},
-      json_data, {new:true, upsert:true, w:1},function(err,doc){
-        console.log("added document");
-        console.log(doc);
+    config_collection.update({'config_name':config}, json_data, {upsert:true, w:1},function(err,doc){
         callback(null,doc);
     });
   }

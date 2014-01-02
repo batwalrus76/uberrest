@@ -1,10 +1,15 @@
 #!/bin/env node
 //  OpenShift sample Node application
 var express = require('express');
+var cors    = require('cors');
 var fs      = require('fs');
-var mongo     = require('./mongo.js');
-
-
+var mongo   = require('./mongo.js');
+var cas     = require('./cas.js');
+var ubertool= require('./ubertool.js');
+var batch   = require('./batch.js');
+var user    = require('./user.js');
+var formula = require('./formula.js');
+var batch_amqp = require('./batch_amqp.js');
 /**
  *  Define the sample application.
  */
@@ -12,8 +17,13 @@ var SampleApp = function() {
 
     //  Scope.
     var self = this;
-
-
+    var db = mongo.getDB();
+    cas.setDB(db);
+    ubertool.setDB(db);
+    user.setDB(db);
+    formula.setDB(db);
+    batch.setDB(db);
+    
     /*  ================================================================  */
     /*  Helper functions.                                                 */
     /*  ================================================================  */
@@ -24,7 +34,7 @@ var SampleApp = function() {
     self.setupVariables = function() {
         //  Set the environment variables we need.
         self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
-        self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+        self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8081;
 
         if (typeof self.ipaddress === "undefined") {
             //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
@@ -95,31 +105,18 @@ var SampleApp = function() {
      */
     self.createRoutes = function() {
         self.routes = { };
-
-        // Routes for /health, /asciimo and /
-        self.routes['/health'] = function(req, res) {
-            res.send('1');
-        };
-
-        self.routes['/asciimo'] = function(req, res) {
-            var link = "http://i.imgur.com/kmbjB.png";
-            res.send("<html><body><img src='" + link + "'></body></html>");
-        };
+        self.post_routes = { };
 
         self.routes['/cas/:cas_num'] = function(req, res) {
-            console.log("/cas REST API reached");
-            mongo.getChemicalName(req.param.cas_num, function(error,chem_name){
-                res.header("Access-Control-Allow-Origin", "*");
-                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+            console.log("/cas/" + req.params.cas_num + " REST API reached ");
+            cas.getChemicalName(req.params.cas_num, function(error,chem_name){
                 res.send(chem_name);
             });
         };
 
         self.routes['/all-cas'] = function(req, res) {
             console.log("/all-cas REST API reached");
-            mongo.getAll(function(error,all_cas){
-                res.header("Access-Control-Allow-Origin", "*");
-                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+            cas.getAll(function(error,all_cas){
                 res.send(all_cas);
             });
         };
@@ -130,17 +127,227 @@ var SampleApp = function() {
             cas.getChemicalData(chemical_name, function(error,cas_data){
                 if(cas_data != null)
                 {
-                    res.header("Access-Control-Allow-Origin", "*");
-                    res.header("Access-Control-Allow-Headers", "X-Requested-With");
                     res.send(cas_data);
                 }
             });
         };
 
+        self.routes['/ubertool/:config_type/config_names'] = function(req, res) {
+            var config_type = req.params.config_type;
+            console.log("Config Type: " + config_type);
+            ubertool.getAllConfigNames(config_type,function(error,config_names){
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                res.send(config_names);
+            });
+        };
+
+        self.routes['/ubertool/:config_type/:config'] = function(req, res) {
+            var config_type = req.params.config_type;
+            var config = req.params.config;
+            // console.log("Config Type: " + config_type);
+            // console.log("Config: " + config);
+            ubertool.getConfigData(config_type,config,function(error,config_data){
+                res.send(config_data);
+            });
+        };
+
+        self.post_routes['/batch'] = function(req,res){
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                if(body != '')
+                {
+                    json = JSON.parse(body);
+                    var results = batch_amqp.submitUbertoolBatchRequest(json);
+                }
+            });
+        };
+
+        self.routes['/batch_configs'] = function(req, res, next) {
+            batch.getBatchNames(function(error, batch_ids){
+                res.send(batch_ids);
+            });
+        };
+
+        self.routes['/batch_results/:batchId'] = function(req, res, next) {
+            var batchId = req.params.batchId;
+            console.log("BatchId: " + batchId);
+            batch.getBatchResults(batchId, function(error, batch_data){
+                if(batch_data != null)
+                {
+                    res.send(batch_data);
+                } else {
+                    res.send("Problem returning results");
+                }
+            });
+        };
+
+        self.post_routes['/batch_results/:batchId'] = function(req,res,next){
+            var batchId = req.params.batchId;
+            console.log("BatchId: " + batchId);
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                console.log("body: " + body);
+                var json = JSON.parse(body);
+                var user_id = json.user_id;
+                var user_api_key = json.api_key;
+                console.log("json user_id: " + user_id + " user_api_key: " + user_api_key);
+                user.authenticateRestAccess(user_id,user_api_key,function(err,authenticated){
+                    console.log("authenticated: " + authenticated);
+                    if(authenticated){
+                        batch.getBatchResults(batchId, function(error, batch_data){
+                            if(batch_data != null)
+                            {
+                                res.send(batch_data);
+                            } else {
+                                res.send("Problem returning results");
+                            }
+                        });
+                    } else {
+                        console.log('User API Authentication failed');
+                        res.send("User: " + user_id + " passed an incorrect api key and cannot call this method.");
+                    }
+                });
+            });
+        };
+
+        self.post_routes['/ubertool/:config_type/:config'] = function(req,res){
+            var config_type = req.params.config_type;
+            var config = req.params.config;
+            var body = '';
+            var json = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                json = JSON.parse(body);
+                ubertool.addUpdateConfig(config_type,config,json, function(error, results)
+                {
+                    res.send(results);
+                });
+            });
+        };
+
+        self.post_routes['/user/login/:userid'] = function(req, res, next){
+            var user_id = req.params.userid;
+            console.log('user id: ' + user_id);
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                json = JSON.parse(body);
+                user.getLoginDecision(user_id,json.password,function(err, decision_data){
+                    if(decision_data.decision)
+                    {
+                        var acsid_string = "test="+decision_data.sid;
+                        console.log("acsid_string: " + acsid_string);
+                        res.header('Set-Cookie',acsid_string);
+                    }
+                    res.send(decision_data);
+                });
+            });
+        };
+
+        self.post_routes['/user/registration/:user_id'] = function(req, res, next){
+            var user_id = req.params.user_id;
+            console.log('user id: ' + user_id);
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                json = JSON.parse(body);
+                console.log(json);
+                console.log('password: ' + json.pswrd);
+                console.log('email address: ' + json.email_address);
+                user.registerUser(user_id,json.pswrd,json.email_address,function(err, sid_data){
+                    res.send(sid_data);
+                });
+            });
+        };
+
+        self.post_routes['/user/openid/login'] = function(req, res, next){
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                var json = JSON.parse(body);
+                user.openIdLogin(json.openid, function(err, login_data){
+                    res.send(login_data);
+                });
+            });
+        };
+
+        self.post_routes['/user/sessionid'] = function(req, res, next){
+            var body = '';
+            req.on('data', function (data)
+            {
+                body += data;
+            });
+            req.on('end', function ()
+            {
+                var json = JSON.parse(body);
+                var user_id = json['user_id'];
+                var session_id = json['session_id'];
+                console.log("User id: " + user_id + " session id: " + session_id);
+                user.checkUserSessionId(user_id, session_id, function(err, decision_data){
+                    console.log(decision_data);
+                    res.send(decision_data);
+                });
+            });
+        };
+
+        self.routes['/all-cas'] = function(req, res, next){
+            cas.getAll(function(error,all_cas){
+                res.send(all_cas);
+            });
+        };
+
+        //Formula Services
+        self.routes['/formula/:registration_num'] = function(req, res, next){
+            var registration_num = req.params.registration_num;
+            console.log("Registration Number: " + registration_num);
+            formula.getFormulaData(registration_num, function(error,chemicals){
+                console.log(chemicals)
+                res.send(chemicals);
+            });
+        };
+
+        self.routes['/formulas/:pc_code'] = function(req, res, next){
+            var pc_code = req.params.pc_code;
+            console.log("PC Code: " + pc_code);
+            formula.getFormulaDataFromPCCode(pc_code, function(error,chemical){
+                res.send(chemical);
+            });
+        };
+
+        self.routes['/all_formula'] = function(req, res, next){
+            formula.getAllFormulaData(function(error,formula_data){
+                res.send(formula_data);
+            });
+        };
+
         self.routes['/api'] = function(req, res) {
             console.log("Describe REST API");
-            res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "X-Requested-With");
             var apiDescription = "/user/login/:userid<br>"+
             "POST: Decides if the password passed in the json in the body of the request (key password) is valid for the user id as the last part of the url. Returns a json document with the decision(true/false), the sessionId, expiration date time. It adds a value to the passed cookie that tells google appengine that the user is valid to view protected pages.<br>"+
             "/user/registration/:user_id<br>"+
@@ -152,7 +359,7 @@ var SampleApp = function() {
             "/batch_configs<br>"+
             "GET: Retrieves all the names for batch configurations in the system. No parameters are passed<br>"+
             "/batch<br>"+
-            "POST: Submits a batch configuration to the asynchronous batching system via RabbitMQ.<br>"+
+            "POST: Submits a batch configuration to the asynchronous batching system via ActiveMQ.<br>"+
             "/batch_results/:batchId <br>"+
             "GET: Retrieves the results of an ubertool batch, based on the batchId passed in the URL. Returns a hierarchical JSON data.<br>"+
             "POST: Similar to GET request, except that it authenticates the userId along with an apiKey (both passed as arguments in the json documents).  If authenticated to a valid user, will retrieve results.<br>"+
@@ -191,11 +398,16 @@ var SampleApp = function() {
      */
     self.initializeServer = function() {
         self.createRoutes();
-        self.app = express.createServer();
+        self.app = express();
+        self.app.use(cors());
 
         //  Add handlers for the app (from the routes).
         for (var r in self.routes) {
             self.app.get(r, self.routes[r]);
+        }
+
+        for (var r in self.post_routes) {
+            self.app.post(r, self.post_routes[r]);
         }
     };
 

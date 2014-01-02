@@ -20,7 +20,6 @@ exports.getBatchNames = function(callback)
     });
 }
 
-
 exports.getBatchResults = function(batch_id,callback)
 { 
     batch.findOne({batchId:batch_id},function(err,batch) {

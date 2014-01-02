@@ -136,7 +136,6 @@ var SampleApp = function() {
             var config_type = req.params.config_type;
             console.log("Config Type: " + config_type);
             ubertool.getAllConfigNames(config_type,function(error,config_names){
-                res.header("Access-Control-Allow-Headers", "X-Requested-With");
                 res.send(config_names);
             });
         };
@@ -144,27 +143,26 @@ var SampleApp = function() {
         self.routes['/ubertool/:config_type/:config'] = function(req, res) {
             var config_type = req.params.config_type;
             var config = req.params.config;
-            // console.log("Config Type: " + config_type);
-            // console.log("Config: " + config);
             ubertool.getConfigData(config_type,config,function(error,config_data){
                 res.send(config_data);
             });
         };
 
-        self.post_routes['/batch'] = function(req,res){
+        self.post_routes['/batch'] = function submitBatch(req, res, next){
+            console.log("Batch Submitted to Node.js server.");
             var body = '';
             req.on('data', function (data)
             {
                 body += data;
             });
+            //console.log(body);
             req.on('end', function ()
             {
-                if(body != '')
-                {
-                    json = JSON.parse(body);
-                    var results = batch_amqp.submitUbertoolBatchRequest(json);
-                }
+                var json = JSON.parse(body);
+                //console.log(JSON.stringify(json)); 
+                var results = rabbitmq.submitUbertoolBatchRequest(json);
             });
+            res.send("Submitting Batch.\n");
         };
 
         self.routes['/batch_configs'] = function(req, res, next) {

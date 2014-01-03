@@ -13,7 +13,7 @@ var batch_amqp = require('./batch_amqp.js');
 /**
  *  Define the sample application.
  */
-var SampleApp = function() {
+var App = function() {
 
     //  Scope.
     var self = this;
@@ -148,20 +148,10 @@ var SampleApp = function() {
             });
         };
 
-        self.post_routes['/batch'] = function submitBatch(req, res, next){
+        self.post_routes['/batch'] = function submitBatch(req, res){
             console.log("Batch Submitted to Node.js server.");
-            var body = '';
-            req.on('data', function (data)
-            {
-                body += data;
-            });
-            //console.log(body);
-            req.on('end', function ()
-            {
-                var json = JSON.parse(body);
-                //console.log(JSON.stringify(json)); 
-                var results = rabbitmq.submitUbertoolBatchRequest(json);
-            });
+            var json = req.body;
+            var results = batch_amqp.submitUbertoolBatchRequest(json);
             res.send("Submitting Batch.\n");
         };
 
@@ -398,6 +388,9 @@ var SampleApp = function() {
         self.createRoutes();
         self.app = express();
         self.app.use(cors());
+        self.app.configure(function(){
+            self.app.use(express.bodyParser());
+        });
 
         //  Add handlers for the app (from the routes).
         for (var r in self.routes) {
@@ -441,6 +434,6 @@ var SampleApp = function() {
 /**
  *  main():  Main code.
  */
-var zapp = new SampleApp();
+var zapp = new App();
 zapp.initialize();
 zapp.start();
